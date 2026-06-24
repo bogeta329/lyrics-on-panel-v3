@@ -109,21 +109,18 @@ journalctl --user -u Universal-Mpris-LyricServer -f
 
 ----
 
-### Showcase
 
-> ⚠️ **Compatibility Note**: This widget has only been tested on **KDE Plasma 6.7.1**. It is not guaranteed to work on other versions. KDE Plasma 5 is **not supported** by this version.
+### Showcase
 
 #### Widget in the Panel
 
 ![Widget in panel](img/v3/panel-preview.png)
 
-#### Configuration Page — Next Line Preview Enabled
+#### Configuration Page
 
 <p align="center">
   <img src="img/v3/config-preview-on.png" alt="Config with next line preview enabled" width="600"/>
 </p>
-
-#### Configuration Page — Next Line Preview Disabled
 
 <p align="center">
   <img src="img/v3/config-preview-off.png" alt="Config with next line preview disabled" width="600"/>
