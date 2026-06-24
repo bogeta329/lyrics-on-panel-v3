@@ -1,4 +1,4 @@
-<h1 align="center">Lyrics-on-Panel</h1>
+<h1 align="center">Lyrics-on-Panel-v3-sbs</h1>
 
 <p align="center">
   <a href="https://drive.google.com/file/d/1wo_2CpBg5cgbhNJqyb9LIaSVA5LmSR2S/view?usp=drive_link" target="_blank">
@@ -12,6 +12,40 @@
 <p align="center"><b><code>在屏幕的任何地方显示正在播放音乐的歌词  
 </code></b></p>
 <p align="center"><b><code>Display lyrics of the currently playing music anywhere on the screen</code></b></p>
+
+----
+
+### 🌟 v3.0.0 (SBS Improved Version) - 2026
+
+这个版本是由 Antigravity AI 与 user pairing 共同设计开发的增强版 (v3)，在原版 (v2) 的基础上引入了多项高级动画、性能优化和易用性改进：
+
+> This is the enhanced version (v3) designed and developed in collaboration with Antigravity AI and pairing partner. It introduces advanced animations, performance optimizations, and user-experience improvements over the original version (v2):
+
+#### 🚀 新功能与改进 (New Features & Improvements)
+
+1. **歌词淡入淡出及滑动效果 (Apple Music Style Transitions)**:
+   - 实现了类似于 Apple Music 的纵向滑动效果。当下一行歌词准备好时，下方的预览行会向上滑入，伴随着尺寸从 `0.8` 缩放到 `1.0`，透明度从设定的预览值提升到 100%，而当前的歌词行则渐隐并稍微向上偏移（`-4px`）。
+   - *This version implements smooth Apple Music style vertical transitions. The preview line slides up to replace the active line, scaling from `0.8` to `1.0` with fade transitions, while the old active line fades out.*
+
+2. **歌词大小智能自适应 (Adaptive Font Sizing for Small Panels)**:
+   - 自动检测 KDE 面板的物理高度。若面板高度较小且开启了歌词预览，会智能等比缩小字体，确保双行歌词完全可见而不被裁剪。如果关闭预览，字体会自动变大。
+   - *Automatically detects the physical panel height. If the height is restricted and next line preview is enabled, it dynamically reduces the font size so that both lines fit perfectly without clipping.*
+
+3. **稳定无跳动垂直居中 (Jitter-free Centering & Behavior on y)**:
+   - 只有主歌词始终保持垂直居中，即使下一行预览歌词由于数据变动出现或消失，当前正在播放的歌词位置也完全不动，杜绝抖动。高度变化时伴随 200ms 的平滑垂直插值滑动 (`Behavior on y`)。
+   - *Only the active line remains strictly centered so its vertical position is completely stable. Shifting is handled smoothly using a 200ms `Behavior on y` animation. The top line is clamped (`Math.max(2, centerY)`) so it is never cut off.*
+
+4. **磁盘缓存加速 (`/tmp` Cache)**:
+   - 在后台 Python 进程中实现了基于 SHA-256 哈希的本地 `/tmp` 缓存。下载过的歌曲歌词会自动缓存，避免重复请求并减轻 CPU 负担，在电脑关机/重启时由系统自动清理。
+   - *Implements a SHA-256 local JSON cache under `/tmp/lyrics-on-panel-cache/`. It avoids duplicate network requests, consumes zero persistent storage, and automatically cleans up on system reboot.*
+
+5. **手动歌词同步偏移 (Manual Sync Offset)**:
+   - 增加手动在配置面板微调延迟的功能（支持 `-5000ms` 至 `+5000ms`），解决某些歌词与音频不同步的问题。
+   - *Adds a configuration slider/input to adjust a manual synchronization offset (from `-5000ms` to `+5000ms`) to correct laggy or fast lyrics.*
+
+6. **全向后兼容 (Backwards Compatible)**:
+   - Python 后台以无损的向后兼容格式输出了 `next_lyric`, `current_lyric_duration_ms` 和 `time_remaining_ms`，因此无论运行 v2 还是 v3 版本的前端 widget 都能共用同一个后台！
+   - *The backend server computes and outputs extra metadata while maintaining full backwards compatibility for v2 frontend applets.*
 
 ----
 
