@@ -68,7 +68,7 @@ This plugin replicates the top-bar lyrics display feature of NetEase Cloud Music
 
 ### Installation Guide
 
-> ⚠️ Only tested on **KDE Plasma 6.7.1**. Other versions are not supported.
+> ⚠️ Only tested on **KDE Plasma 6.7.1** running on **CachyOS (Arch-based)**. Other distros and Plasma versions are not guaranteed to work. KDE Plasma 5 is **not supported**.
 
 Installation is a two-step process: first install the **widget**, then install the **Python backend** that powers it.
 
@@ -82,13 +82,22 @@ cd lyrics-on-panel-v3/kde/v3
 kpackagetool6 -t Plasma/Applet -i .
 ```
 
-> If you don't have `kpackagetool6`, install it first with: `yay -S plasma-sdk`
+**Don't have `kpackagetool6`?** It's part of the KDE Plasma SDK. Install it depending on your distro:
+
+| Distro | Command | Tested? |
+|---|---|---|
+| Arch / CachyOS / Manjaro | `yay -S plasma-sdk` | ✅ Tested |
+| Debian / Ubuntu / Kubuntu | `sudo apt install plasma-sdk` | ⚠️ Untested |
+| Fedora | `sudo dnf install plasma-sdk` | ⚠️ Untested |
+| openSUSE | `sudo zypper install plasma-sdk` | ⚠️ Untested |
 
 After running these commands, right-click your panel → **Add Widgets** → search for **lyrics-on-panel-plasma6-v3** and add it.
 
 #### Step 2 — Install the Python backend
 
-The widget needs a background Python server to fetch lyrics. Install it with:
+**What is the backend?** The widget itself is just the visual layer that sits on your panel. To actually fetch and sync lyrics, it needs a small Python server running in the background. This server communicates with your music player via MPRIS2 (a standard Linux media interface) and sends the current lyrics to the widget over a local WebSocket connection. It runs automatically on login as a systemd user service.
+
+Install it with:
 
 ```bash
 cd lyrics-on-panel-v3
@@ -96,9 +105,12 @@ chmod +x scripts/install-backend.sh
 ./scripts/install-backend.sh
 ```
 
-This will automatically clone the repo, set up a Python environment, and register a systemd user service that starts on login.
+> ⚠️ The install script uses `pacman` internally (Arch-based). If you're on Debian/Ubuntu or another distro, you may need to manually install the dependencies: `python3`, `dbus-python`, `python3-websockets`.
 
-> To check the backend is running: `systemctl --user status Universal-Mpris-LyricServer`
+This will set up a Python virtual environment and register a systemd service that starts automatically on login.
+
+> To check the backend is running: `systemctl --user status Universal-Mpris-LyricServer`  
+> To see live logs: `journalctl --user -u Universal-Mpris-LyricServer -f`
 
 ----
 
