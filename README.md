@@ -1,13 +1,7 @@
 <h1 align="center">Lyrics-on-Panel-v3</h1>
 
 <p align="center">
-  <a href="https://drive.google.com/file/d/1wo_2CpBg5cgbhNJqyb9LIaSVA5LmSR2S/view?usp=drive_link" target="_blank">
-  	Watch DEMO Video
-  </a>
-</p>
-
-<p align="center">
-  <img src="img/image-panel-onlythiswidget.png" alt="Plasma Lyric Panel Demo" width="500"/>
+  <img src="img/v3/panel-preview.png" alt="Lyrics-on-Panel-v3 Demo" width="700"/>
 </p>
 <p align="center"><b><code>Display lyrics of the currently playing music anywhere on the screen</code></b></p>
 
