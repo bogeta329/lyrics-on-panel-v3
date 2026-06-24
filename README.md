@@ -101,27 +101,22 @@ There are two approaches to install the widget:
 
 ### Showcase
 
-#### KDE Plasma 6 (With [**Panel Colorizer**](https://github.com/luisbocanegra/plasma-panel-colorizer))
+> ⚠️ **Compatibility Note**: This widget has only been tested on **KDE Plasma 6.7.1**. It is not guaranteed to work on other versions. KDE Plasma 5 is **not supported** by this version.
 
-![Plasma6 Showcase](img/image-20240529024104188.png)
+#### Widget in the Panel
 
-#### KDE Plasma 5
+![Widget in panel](img/v3/panel-preview.png)
 
-![Plasma5 Showcase](img/image-20240317192855544.png)
-
-#### Panel Only
-
-![Panel Showcase 1](img/image-20240529023754367.png)  
-![Panel Showcase 2](img/image-20240529023819659.png)
-
-#### Synchronized Lyrics
-
-![image-20250525014042601](img/README/image-20250525014042601.png)
-
-#### Configuration Page
+#### Configuration Page — Next Line Preview Enabled
 
 <p align="center">
-  <img src="img/README/image-20250525013647423.png" alt="Customizing Components">
+  <img src="img/v3/config-preview-on.png" alt="Config with next line preview enabled" width="600"/>
+</p>
+
+#### Configuration Page — Next Line Preview Disabled
+
+<p align="center">
+  <img src="img/v3/config-preview-off.png" alt="Config with next line preview disabled" width="600"/>
 </p>
 
 ## Star History
