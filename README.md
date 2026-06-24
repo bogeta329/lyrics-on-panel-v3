@@ -15,7 +15,9 @@
 
 ### 🌟 v3.0.0 (Improved Version) - 2026
 
-This is the enhanced version (v3) of lyrics-on-panel. It introduces advanced animations, performance optimizations, and user-experience improvements over the original version (v2):
+This is the enhanced version (v3) of lyrics-on-panel. It introduces advanced animations, performance optimizations, and user-experience improvements over the original version (v2).
+
+> 🔗 Based on the original project by [KangweiZhu](https://github.com/KangweiZhu/lyrics-on-panel). All credit for the original widget goes to them — this fork simply extends and improves it.
 
 #### 🚀 New Features & Improvements
 
