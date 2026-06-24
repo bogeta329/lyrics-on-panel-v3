@@ -68,30 +68,37 @@ This plugin replicates the top-bar lyrics display feature of NetEase Cloud Music
 
 ### Installation Guide
 
-#### KDE
+> ⚠️ Only tested on **KDE Plasma 6.7.1**. Other versions are not supported.
 
-We provide three frontend versions for KDE Plasma:
-- **v1**: Pure QML implementation (legacy mode).
-- **v2**: QML frontend with Python backend.
-- **v3 (Recommended)**: QML frontend with Python backend, supporting vertical transitions, next line previews, adaptive font sizing, and caching.
+Installation is a two-step process: first install the **widget**, then install the **Python backend** that powers it.
 
-There are two approaches to install the widget:
+#### Step 1 — Install the widget
 
-1. **GUI Method**: Install the frontend using the graphical interface provided by KDE (see [this link](https://userbase.kde.org/Plasma/Installing_Plasmoids)).
-2. **CLI Method**: Install via command line:
-   ```bash
-   yay -S plasma-sdk
-   git clone https://github.com/bogeta329/lyrics-on-panel-v3.git
-   cd lyrics-on-panel-v3/kde/v3 # or cd to v2 / v1 if preferred
-   kpackagetool6 -t Plasma/Applet -i .
-   ```
+Open a terminal and run:
 
-* ⚠️⚠️⚠️ **v2 and v3 require the Python backend to work.** Install it with the following commands:
-  ```bash
-  cd lyrics-on-panel-v3
-  chmod +x scripts/install-backend.sh
-  ./scripts/install-backend.sh
-  ```
+```bash
+git clone https://github.com/bogeta329/lyrics-on-panel-v3.git
+cd lyrics-on-panel-v3/kde/v3
+kpackagetool6 -t Plasma/Applet -i .
+```
+
+> If you don't have `kpackagetool6`, install it first with: `yay -S plasma-sdk`
+
+After running these commands, right-click your panel → **Add Widgets** → search for **lyrics-on-panel-plasma6-v3** and add it.
+
+#### Step 2 — Install the Python backend
+
+The widget needs a background Python server to fetch lyrics. Install it with:
+
+```bash
+cd lyrics-on-panel-v3
+chmod +x scripts/install-backend.sh
+./scripts/install-backend.sh
+```
+
+This will automatically clone the repo, set up a Python environment, and register a systemd user service that starts on login.
+
+> To check the backend is running: `systemctl --user status Universal-Mpris-LyricServer`
 
 ----
 
