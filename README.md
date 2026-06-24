@@ -37,6 +37,11 @@ This is the enhanced version (v3) of lyrics-on-panel. It introduces advanced ani
 6. **Full Backwards Compatibility**:
    - The backend server computes and outputs extra metadata while maintaining full backwards compatibility for v2 frontend applets.
 
+#### 🐛 Bug Fixes (vs. original version)
+
+- **High CPU usage on low-end machines**: The original version had a known issue causing abnormally high CPU consumption, making it unusable on less powerful hardware. This has been fixed by optimizing the polling loop and reducing unnecessary redraws.
+- **Lyrics stuck on song change**: When skipping to a new song or changing tracks, the original version would keep displaying the previous song's lyrics until a full reload. This bug has been fixed — lyrics now clear and reload correctly as soon as the track changes.
+
 ----
 
 ### Features
