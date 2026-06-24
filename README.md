@@ -15,7 +15,7 @@
 
 ### 🌟 v3.0.0 (Improved Version) - 2026
 
-This is the enhanced version (v3) designed and developed in collaboration with Antigravity AI. It introduces advanced animations, performance optimizations, and user-experience improvements over the original version (v2):
+This is the enhanced version (v3) of lyrics-on-panel. It introduces advanced animations, performance optimizations, and user-experience improvements over the original version (v2):
 
 #### 🚀 New Features & Improvements
 
@@ -127,3 +127,9 @@ There are two approaches to install the widget:
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=bogeta329/lyrics-on-panel-v3&type=date&legend=top-left)](https://www.star-history.com/#bogeta329/lyrics-on-panel-v3&type=date&legend=top-left)
+
+----
+
+## Notes
+
+This project was built using [vibe coding](https://en.wikipedia.org/wiki/Vibe_coding) — an AI-assisted development approach where the overall direction, feature design and iteration were driven by the developer, with AI tools helping implement and refine the code in real time. All features and fixes were reviewed and tested by a human.
