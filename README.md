@@ -124,11 +124,7 @@ journalctl --user -u Universal-Mpris-LyricServer -f
 #### Configuration Page
 
 <p align="center">
-  <img src="img/v3/config-preview-on.png" alt="Config with next line preview enabled" width="600"/>
-</p>
-
-<p align="center">
-  <img src="img/v3/config-preview-off.png" alt="Config with next line preview disabled" width="600"/>
+  <img src="img/v3/config-preview-on.png" alt="Configuration page" width="600"/>
 </p>
 
 ## Star History
