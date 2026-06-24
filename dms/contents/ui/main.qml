@@ -249,6 +249,16 @@ PluginComponent {
     popoutWidth: 300
     popoutHeight: Math.max(availablePlayers.length * 50 + 100, 150)
 
+    Timer {
+        id: pollTimer
+        interval: 500
+        running: pollSocket.status === WebSocket.Open
+        repeat: true
+        onTriggered: {
+            sendPollRequest()
+        }
+    }
+
     // WebSocket connections
     WebSocket {
         id: pollSocket
@@ -275,7 +285,6 @@ PluginComponent {
             try {
                 var data = JSON.parse(message)
                 handlePollResponse(data)
-                sendPollRequest()
             } catch (e) {
                 console.log("Error parsing poll response:", e)
             }

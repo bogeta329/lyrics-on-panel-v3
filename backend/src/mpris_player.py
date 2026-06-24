@@ -36,8 +36,7 @@ class MprisPlayer:
             self.props_iface = dbus.Interface(self.obj, DBUS_PROPERTIES_IFACE)
             self.root_iface = dbus.Interface(self.obj, MPRIS_ROOT_IFACE)
             self.player_iface = dbus.Interface(self.obj, MPRIS_PLAYER_IFACE)
-        except dbus.exceptions.DBusException as e:
-            print(f"Error connecting to {dbus_identifier}: {e}")
+        except dbus.exceptions.DBusException:
             self.obj = None
 
 
@@ -330,7 +329,7 @@ class MprisPlayer:
             
             data['root'] = unwrap(root_props)
             data['player'] = unwrap(player_props)
-        except dbus.exceptions.DBusException as e:
-            print(f"Error fetching full state for {self.dbus_identifier}: {e}")
+        except dbus.exceptions.DBusException:
+            pass
             
         return data

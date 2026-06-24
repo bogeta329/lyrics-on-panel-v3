@@ -22,11 +22,11 @@ PlasmoidItem {
     id: root
 
     width: 0
-    height: lyricText.contentHeight
+    height: (lyricColumn ? lyricColumn.height : 0) + 8
 
     preferredRepresentation: fullRepresentation
     Layout.preferredWidth: config_preferedWidgetWidth
-    Layout.preferredHeight: lyricText.contentHeight
+    Layout.preferredHeight: height
 
     Plasmoid.backgroundHints: PlasmaCore.Types.NoBackground | PlasmaCore.Types.ConfigurableBackground
 
@@ -51,22 +51,16 @@ PlasmoidItem {
                 }
             }
 
-            TextMetrics {
-                id: lyricTextMetrics
-                font: lyricText.font
-                text: currentLyric || lrc_not_exists
-            }
-
             SequentialAnimation {
                 id: lyricBounceAnimation
-                running: lyricTextMetrics.width > lyricTextContainer.width && playbackStatus === "playing"
+                running: lyricColumn.width > lyricTextContainer.width && playbackStatus === "playing"
                 loops: Animation.Infinite
 
                 PropertyAnimation {
-                    target: lyricText
+                    target: lyricColumn
                     property: "xPosition"
                     from: 0
-                    to: lyricTextContainer.width - lyricTextMetrics.width
+                    to: lyricTextContainer.width - lyricColumn.width
                     duration: animationDuration
                     easing.type: Easing.Linear
                 }
@@ -74,9 +68,9 @@ PlasmoidItem {
                 PauseAnimation { duration: 1000 }
 
                 PropertyAnimation {
-                    target: lyricText
+                    target: lyricColumn
                     property: "xPosition"
-                    from: lyricTextContainer.width - lyricTextMetrics.width
+                    from: lyricTextContainer.width - lyricColumn.width
                     to: 0
                     duration: animationDuration
                     easing.type: Easing.Linear
@@ -91,42 +85,101 @@ PlasmoidItem {
                 running: false
                 repeat: false
                 onTriggered: {
-                    if (lyricTextMetrics.width > lyricTextContainer.width && playbackStatus === "playing") {
-                        lyricText.xPosition = 0
+                    if (lyricColumn.width > lyricTextContainer.width && playbackStatus === "playing") {
+                        lyricColumn.xPosition = 0
                         lyricBounceAnimation.start()
                     }
                 }
             }
 
-            Text {
-                id: lyricText
-                text: currentLyric || lrc_not_exists
-                color: config_lyricTextColor
-                font.pixelSize: config_lyricTextSize
-                font.bold: config_lyricTextBold
-                font.italic: config_lyricTextItalic
-                anchors.verticalCenter: parent.verticalCenter
-                anchors.verticalCenterOffset: config_lyricTextVerticalOffset
+            Item {
+                id: lyricColumn
+                property real spacing: 0
+                height: (currentLyricText ? currentLyricText.contentHeight : 0) + ((nextLyricText && nextLyricText.visible) ? (nextLyricText.contentHeight * 0.8 + 2) : 0)
+                width: currentLyricText ? currentLyricText.contentWidth : 0
                 
+                y: {
+                    var centerY = (lyricTextContainer.height - height) / 2;
+                    return Math.max(2, centerY) + config_lyricTextVerticalOffset;
+                }
+
+                Behavior on y {
+                    NumberAnimation {
+                        duration: 200
+                        easing.type: Easing.InOutQuad
+                    }
+                }
+
                 property real initialXPosition: {
                     if (config_lyricTextAlignment === 0) {
                         return 0
                     } else if (config_lyricTextAlignment === 1) {
-                        return (lyricTextContainer.width - lyricTextMetrics.width) / 2
+                        return (lyricTextContainer.width - width) / 2
                     } else {
-                        return lyricTextContainer.width - lyricTextMetrics.width
+                        return lyricTextContainer.width - width
                     }
                 }
-                
+
                 property real xPosition: initialXPosition
-                
-                x: lyricTextMetrics.width <= lyricTextContainer.width || !lyricBounceAnimation.running
+
+                x: width <= lyricTextContainer.width || !lyricBounceAnimation.running
                     ? initialXPosition
                     : xPosition
 
-                onTextChanged: {
+                onWidthChanged: {
                     lyricBounceAnimation.stop()
                     restartTimer.start()
+                }
+
+                Text {
+                    id: currentLyricText
+                    text: displayedLyric || lrc_not_exists
+                    color: config_lyricTextColor
+                    font.pixelSize: actualFontSize
+                    font.bold: config_lyricTextBold
+                    font.italic: config_lyricTextItalic
+                    
+                    anchors.top: parent.top
+                    anchors.horizontalCenter: config_lyricTextAlignment === 1 ? parent.horizontalCenter : undefined
+                    anchors.left: config_lyricTextAlignment === 0 ? parent.left : undefined
+                    anchors.right: config_lyricTextAlignment === 2 ? parent.right : undefined
+
+                    transformOrigin: {
+                        if (config_lyricTextAlignment === 0) return Item.Left
+                        else if (config_lyricTextAlignment === 1) return Item.Center
+                        else return Item.Right
+                    }
+
+                    transform: Translate {
+                        id: currentTranslate
+                        y: 0
+                    }
+                }
+
+                Text {
+                    id: nextLyricText
+                    text: displayedNextLyric
+                    color: config_lyricTextColor
+                    font.pixelSize: actualFontSize
+                    font.bold: config_lyricTextBold
+                    font.italic: config_lyricTextItalic
+                    opacity: config_nextLyricOpacity
+                    visible: config_showNextLyric && displayedLyric && displayedNextLyric
+                    
+                    anchors.top: currentLyricText.bottom
+                    anchors.topMargin: lyricColumn.spacing
+                    
+                    anchors.horizontalCenter: config_lyricTextAlignment === 1 ? parent.horizontalCenter : undefined
+                    anchors.left: config_lyricTextAlignment === 0 ? parent.left : undefined
+                    anchors.right: config_lyricTextAlignment === 2 ? parent.right : undefined
+
+                    transformOrigin: currentLyricText.transformOrigin
+                    scale: 0.8
+
+                    transform: Translate {
+                        id: nextTranslate
+                        y: 0
+                    }
                 }
             }
         }
@@ -273,6 +326,16 @@ PlasmoidItem {
     property bool config_compatibleModeChecked: Plasmoid.configuration.compatibleModeChecked
 
     property int config_lyricTextSize: Plasmoid.configuration.lyricTextSize
+    property int actualFontSize: {
+        var baseSize = config_lyricTextSize;
+        if (!config_showNextLyric) {
+            var maxSingleSize = Math.max(8, Math.floor((lyricTextContainer.height - 6) / 1.25));
+            return Math.min(baseSize, maxSingleSize);
+        } else {
+            var maxCombinedSize = Math.max(8, Math.floor((lyricTextContainer.height - 6) / 2.2));
+            return Math.min(baseSize, maxCombinedSize);
+        }
+    }
     property string config_lyricTextColor: Plasmoid.configuration.lyricTextColor
     property bool config_lyricTextBold: Plasmoid.configuration.lyricTextBold
     property bool config_lyricTextItalic: Plasmoid.configuration.lyricTextItalic
@@ -289,11 +352,23 @@ PlasmoidItem {
 
     property int config_lxMusicPort: Plasmoid.configuration.lxMusicPort
 
+    property bool config_showNextLyric: Plasmoid.configuration.showNextLyric
+    property int config_syncOffsetMs: Plasmoid.configuration.syncOffsetMs
+    property int config_transitionDurationMs: Plasmoid.configuration.transitionDurationMs
+    property double config_nextLyricOpacity: Plasmoid.configuration.nextLyricOpacity
+    property string config_nextLyricSeparator: Plasmoid.configuration.nextLyricSeparator
+
     readonly property string serverHost: "127.0.0.1"
     readonly property int serverPort: 23560
 
     property string playbackStatus: "stopped"
     property string currentLyric: ""
+    property string nextLyric: ""
+    property int currentLyricDurationMs: 0
+    property int timeRemainingMs: 0
+    property string displayedLyric: ""
+    property string displayedNextLyric: ""
+
     property string currentTitle: ""
     property string currentArtist: ""
     property string currentAlbum: ""
@@ -303,7 +378,18 @@ PlasmoidItem {
     property bool hasActivePlayer: false
     property var availablePlayers: []
     property string selectedPlayer: ""
-    property int animationDuration: Math.max(2000, Math.abs((lyricTextContainer.width - lyricTextMetrics.width) / 50 * 1000))
+    property int animationDuration: {
+        var defaultDuration = Math.max(2000, Math.abs((lyricTextContainer.width - lyricColumn.width) / 50 * 1000));
+        if (playbackStatus !== "playing" || timeRemainingMs <= 0) {
+            return defaultDuration;
+        }
+        var adjustedRemaining = timeRemainingMs + config_syncOffsetMs;
+        if (adjustedRemaining < 2000) {
+            return 1500;
+        }
+        var targetDuration = (adjustedRemaining - 2000) / 2;
+        return Math.max(1500, Math.min(defaultDuration, targetDuration));
+    }
 
     property string requestedPlayer: {
         if (selectedPlayer) {
@@ -419,10 +505,150 @@ PlasmoidItem {
         }
     }
 
+    onCurrentLyricChanged: {
+        triggerTransition()
+    }
+
+    onNextLyricChanged: {
+        if (!fadeTransitionAnimation.running && !slideTransitionAnimation.running) {
+            displayedNextLyric = nextLyric
+        }
+    }
+
+    onLrc_not_existsChanged: {
+        if (!currentLyric) {
+            triggerTransition()
+        }
+    }
+
+    function triggerTransition() {
+        if (config_transitionDurationMs <= 0) {
+            displayedLyric = currentLyric
+            displayedNextLyric = nextLyric
+            return
+        }
+
+        var canSlide = config_showNextLyric && displayedNextLyric !== "" && currentLyric === displayedNextLyric;
+        if (canSlide) {
+            slideTransitionAnimation.restart()
+        } else {
+            fadeTransitionAnimation.restart()
+        }
+    }
+
+    SequentialAnimation {
+        id: fadeTransitionAnimation
+        
+        PropertyAnimation {
+            target: lyricColumn
+            property: "opacity"
+            to: 0
+            duration: config_transitionDurationMs / 2
+            easing.type: Easing.InOutQuad
+        }
+        
+        ScriptAction {
+            script: {
+                displayedLyric = currentLyric
+                displayedNextLyric = nextLyric
+            }
+        }
+        
+        PropertyAnimation {
+            target: lyricColumn
+            property: "opacity"
+            to: 1
+            duration: config_transitionDurationMs / 2
+            easing.type: Easing.InOutQuad
+        }
+    }
+
+    SequentialAnimation {
+        id: slideTransitionAnimation
+        
+        ParallelAnimation {
+            NumberAnimation {
+                target: currentTranslate
+                property: "y"
+                from: 0
+                to: -4
+                duration: config_transitionDurationMs
+                easing.type: Easing.OutCubic
+            }
+            NumberAnimation {
+                target: currentLyricText
+                property: "opacity"
+                from: 1.0
+                to: 0.0
+                duration: config_transitionDurationMs
+                easing.type: Easing.OutCubic
+            }
+            NumberAnimation {
+                target: currentLyricText
+                property: "scale"
+                from: 1.0
+                to: 0.8
+                duration: config_transitionDurationMs
+                easing.type: Easing.OutCubic
+            }
+            NumberAnimation {
+                target: nextTranslate
+                property: "y"
+                from: 0
+                to: -(currentLyricText.height + lyricColumn.spacing)
+                duration: config_transitionDurationMs
+                easing.type: Easing.OutCubic
+            }
+            NumberAnimation {
+                target: nextLyricText
+                property: "opacity"
+                from: config_nextLyricOpacity
+                to: 1.0
+                duration: config_transitionDurationMs
+                easing.type: Easing.OutCubic
+            }
+            NumberAnimation {
+                target: nextLyricText
+                property: "scale"
+                from: 0.8
+                to: 1.0
+                duration: config_transitionDurationMs
+                easing.type: Easing.OutCubic
+            }
+        }
+        
+        ScriptAction {
+            script: {
+                displayedLyric = currentLyric
+                displayedNextLyric = nextLyric
+                currentTranslate.y = 0
+                nextTranslate.y = 0
+                currentLyricText.scale = 1.0
+                nextLyricText.scale = 0.8
+                currentLyricText.opacity = 1.0
+                nextLyricText.opacity = config_nextLyricOpacity
+                nextLyricFadeIn.restart()
+            }
+        }
+    }
+
+    NumberAnimation {
+        id: nextLyricFadeIn
+        target: nextLyricText
+        property: "opacity"
+        from: 0.0
+        to: config_nextLyricOpacity
+        duration: 150
+        easing.type: Easing.OutQuad
+    }
+
     function handlePollResponse(data) {
         if (!data || !data.player) {
             hasActivePlayer = false
             currentLyric = ""
+            nextLyric = ""
+            currentLyricDurationMs = 0
+            timeRemainingMs = 0
             currentTitle = ""
             currentArtist = ""
             currentAlbum = ""
@@ -445,10 +671,16 @@ PlasmoidItem {
             currentAlbum = data.track.album || ""
         }
 
-        if (data.lyrics && data.lyrics.current_lyric) {
-            currentLyric = data.lyrics.current_lyric
+        if (data.lyrics) {
+            currentLyric = data.lyrics.current_lyric || ""
+            nextLyric = data.lyrics.next_lyric || ""
+            currentLyricDurationMs = data.lyrics.current_lyric_duration_ms || 0
+            timeRemainingMs = data.lyrics.time_remaining_ms || 0
         } else {
             currentLyric = ""
+            nextLyric = ""
+            currentLyricDurationMs = 0
+            timeRemainingMs = 0
         }
 
         if (data.available_players) {

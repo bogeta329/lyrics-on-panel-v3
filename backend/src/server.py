@@ -44,6 +44,12 @@ class LyricsServer:
     def process_request(self, connection, request):
         """Store the request path for later use in handler."""
         self._connection_paths[id(connection)] = request.path.strip("/")
+        print(f"[DEBUG] process_request: path={request.path} headers={list(request.headers.items())}")
+        if "connection" in request.headers:
+            conn = request.headers["connection"]
+            if "upgrade" not in conn.lower():
+                del request.headers["connection"]
+                request.headers["connection"] = "Upgrade"
 
 
     async def handler(self, websocket):
