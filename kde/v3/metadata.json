@@ -13,7 +13,7 @@
         "License": "GPLv3",
         "Name": "lyrics-on-panel-plasma6-v3",
         "Version": "3.0",
-        "Website": "https://github.com/KangweiZhu/lyrics-on-panel/kde/v3"
+        "Website": "https://github.com/bogeta329/lyrics-on-panel-v3"
     },
     "X-Plasma-API-Minimum-Version": "6.0",
     "KPackageStructure": "Plasma/Applet"

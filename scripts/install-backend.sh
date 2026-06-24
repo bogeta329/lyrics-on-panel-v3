@@ -6,7 +6,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-REPO_URL="https://github.com/KangweiZhu/lyrics-on-panel"
+REPO_URL="https://github.com/bogeta329/lyrics-on-panel-v3"
 INSTALL_DIR="$HOME/.local/share/lyrics-on-panel"
 SERVICE_NAME="Universal-Mpris-LyricServer"
 
@@ -30,11 +30,10 @@ if ! command -v uv &>/dev/null; then
 fi
 echo -e "${GREEN}uv: $(uv --version)${NC}"
 
-# Step 3: Copy local project files
-echo -e "\n${YELLOW}[3/5] Copying local project files...${NC}"
+# Step 3: Clone the repository
+echo -e "\n${YELLOW}[3/5] Cloning repository...${NC}"
 rm -rf "$INSTALL_DIR"
-mkdir -p "$INSTALL_DIR"
-cp -r /home/eric/Documentos/lyrics-on-panel/* "$INSTALL_DIR"/
+git clone --depth=1 "$REPO_URL" "$INSTALL_DIR"
 
 # Step 4: Create venv with Python 3.13 and install dependencies
 echo -e "\n${YELLOW}[4/5] Creating Python environment...${NC}"
