@@ -2,6 +2,29 @@
 
 ----
 
+### [v3.0 — 06/2026] Improved Fork by bogeta329
+
+> This version is a fork of the original [lyrics-on-panel](https://github.com/KangweiZhu/lyrics-on-panel) by KangweiZhu. It builds on top of v2 and focuses on fixing core bugs and improving the overall experience.
+
+#### Bug Fixes
+
+1. **Fixed high CPU usage on low-end machines** — The original version had a known issue causing abnormally high CPU consumption. Fixed by optimizing the polling loop and reducing unnecessary QML redraws.
+2. **Fixed lyrics stuck on song change** — When skipping tracks, the widget would keep showing the previous song's lyrics. Lyrics now clear and reload correctly as soon as the track changes.
+3. **Fixed text clipping at the top of the panel** — Long lyrics could overflow and get cut off at the top edge. Fixed with proper vertical centering and clamping.
+4. **Fixed animation flicker on rescale** — The transition from small to large text caused a visible flicker. Unified hardware scaling (`scale: 0.8`) prevents font anti-aliasing redraws.
+
+#### Improvements
+
+1. **Apple Music style transitions** — Smooth slide-up + cross-fade lyric transitions. The preview line slides up to become the active line, scaling from `0.8` to `1.0` with fade animations.
+2. **Next line preview** — Shows the upcoming lyric line below the active one at reduced opacity (configurable).
+3. **Adaptive font sizing** — Automatically reduces font size when the panel is too small to fit both lines, then reverts to the configured size when preview is disabled.
+4. **Jitter-free vertical centering** — The active lyric stays strictly centered with a smooth `200ms` `Behavior on y` animation. Position is clamped to never clip at the top.
+5. **Manual sync offset** — Configuration slider to adjust synchronization from `-5000ms` to `+5000ms`.
+6. **One-click installer** — Single `install.sh` script at the root of the repo that auto-detects your distro, installs all dependencies, registers the KDE widget, sets up the Python environment, and configures a systemd user service.
+7. **Uninstaller** — `uninstall.sh` cleanly removes everything: service, widget, and backend files.
+
+----
+
 ### [v2.0 01/12/2025] First time introduce Universal Mpris LyricServer  
 
 > Now we support two versions of this widget under KDE. First version is Pure-QML, it is still maintained and could be installed
