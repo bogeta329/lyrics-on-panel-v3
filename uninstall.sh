@@ -60,6 +60,12 @@ echo -e "${GREEN}  ✅ Uninstallation complete!${NC}"
 echo -e "${GREEN}══════════════════════════════════════════════${NC}"
 echo ""
 echo -e "  The widget and all backend files have been removed."
-echo -e "  You may need to ${YELLOW}restart your panel${NC} for changes to take effect:"
-echo -e "  ${YELLOW}killall plasmashell; kstart plasmashell${NC}"
+echo ""
+
+# ─── Restart plasma shell ─────────────────────────────────────────────────────
+echo -e "${YELLOW}Restarting KDE Plasma shell...${NC}"
+kquitapp6 plasmashell 2>/dev/null || true
+sleep 1
+kstart plasmashell &>/dev/null &
+echo -e "${GREEN}Plasma shell restarted.${NC}"
 echo ""

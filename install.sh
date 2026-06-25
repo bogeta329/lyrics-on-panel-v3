@@ -152,3 +152,11 @@ echo ""
 echo -e "  Backend status: ${BLUE}systemctl --user status ${SERVICE_NAME}${NC}"
 echo -e "  Live logs:      ${BLUE}journalctl --user -u ${SERVICE_NAME} -f${NC}"
 echo ""
+
+# ─── Restart plasma shell ─────────────────────────────────────────────────────
+echo -e "${YELLOW}Restarting KDE Plasma shell...${NC}"
+kquitapp6 plasmashell 2>/dev/null || true
+sleep 1
+kstart plasmashell &>/dev/null &
+echo -e "${GREEN}Plasma shell restarted. The widget is now available.${NC}"
+echo ""
