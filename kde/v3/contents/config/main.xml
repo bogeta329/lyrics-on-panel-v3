@@ -3,16 +3,7 @@
     <kcfgfile name=""/>
 
     <group name="General">
-        <entry name="yesPlayMusicChecked" type="Bool">
-            <default>false</default>
-        </entry>
-        <entry name="lxMusicChecked" type="Bool">
-            <default>false</default>
-        </entry>
-        <entry name="spotifyChecked" type="Bool">
-            <default>false</default>
-        </entry>
-        <entry name="compatibleModeChecked" type="Bool">
+        <entry name="showAlbumCover" type="Bool">
             <default>true</default>
         </entry>
         <entry name="lyricTextSize" type="Int">
@@ -39,7 +30,7 @@
         <entry name="lyricTextVerticalOffset" type="Int">
             <default>0</default>
         </entry>
-        <entry name="lyricTextAlignment" type="int">
+        <entry name="lyricTextAlignment" type="Int">
             <default>2</default>
         </entry>
         <entry name="whiteMediaControlIconsChecked" type="Bool">
@@ -50,9 +41,6 @@
         </entry>
         <entry name="hideItemWhenNoControlChecked" type="Bool">
             <default>true</default>
-        </entry>
-        <entry name="lxMusicPort" type="Int">
-            <default>23330</default>
         </entry>
         <entry name="showNextLyric" type="Bool">
             <default>true</default>
@@ -66,14 +54,5 @@
         <entry name="nextLyricOpacity" type="Double">
             <default>0.4</default>
         </entry>
-        <entry name="nextLyricSeparator" type="String">
-            <default> → </default>
-        </entry>
     </group>
-
-    <!-- <group name="Notification">
-        <entry name="compatibleModeRadioButton" type="Bool">
-            <default>false</default>
-        </entry>
-    </group> -->
 </kcfg>

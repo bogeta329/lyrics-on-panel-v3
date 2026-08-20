@@ -24,8 +24,16 @@ PlasmoidItem {
     width: 0
     height: (lyricColumn ? lyricColumn.height : 0) + 8
 
+    readonly property real calcNeededWidth: {
+        var textW = lyricColumn ? lyricColumn.width : 0;
+        var iconsW = iconsContainer ? iconsContainer.Layout.preferredWidth : 120;
+        var needed = textW + iconsW + config_mediaControllSpacing + 16;
+        var maxW = parseInt(config_preferedWidgetWidth) || 550;
+        return Math.min(maxW, Math.max(iconsW + 20, needed));
+    }
+
     preferredRepresentation: fullRepresentation
-    Layout.preferredWidth: config_preferedWidgetWidth
+    Layout.preferredWidth: calcNeededWidth
     Layout.preferredHeight: height
 
     Plasmoid.backgroundHints: PlasmaCore.Types.NoBackground | PlasmaCore.Types.ConfigurableBackground
@@ -114,9 +122,9 @@ PlasmoidItem {
                     if (config_lyricTextAlignment === 0) {
                         return 0
                     } else if (config_lyricTextAlignment === 1) {
-                        return (lyricTextContainer.width - width) / 2
+                        return Math.max(0, (lyricTextContainer.width - width) / 2)
                     } else {
-                        return lyricTextContainer.width - width
+                        return Math.max(0, lyricTextContainer.width - width - 6)
                     }
                 }
 
@@ -238,9 +246,10 @@ PlasmoidItem {
 
             Image {
                 id: mediaPlayerIcon
-                source: config_yesPlayMusicChecked ? cloudMusicIcon : spotifyIcon
+                source: (config_showAlbumCover && currentArtUrl !== "") ? currentArtUrl : ((currentPlayerBusName.indexOf("yesplaymusic") !== -1 || currentPlayerBusName.indexOf("netease") !== -1) ? cloudMusicIcon : spotifyIcon)
                 sourceSize.width: config_mediaControllItemSize
                 sourceSize.height: config_mediaControllItemSize
+                fillMode: Image.PreserveAspectCrop
 
                 MouseArea {
                     anchors.fill: parent
@@ -320,11 +329,7 @@ PlasmoidItem {
     property string playIcon: config_whiteMediaControlIconsChecked ? "../assets/media-play-white.svg" : "../assets/media-play.svg"
     property bool liked: false
 
-    property bool config_yesPlayMusicChecked: Plasmoid.configuration.yesPlayMusicChecked
-    property bool config_lxMusicChecked: Plasmoid.configuration.lxMusicChecked
-    property bool config_spotifyChecked: Plasmoid.configuration.spotifyChecked
-    property bool config_compatibleModeChecked: Plasmoid.configuration.compatibleModeChecked
-
+    property bool config_showAlbumCover: Plasmoid.configuration.showAlbumCover
     property int config_lyricTextSize: Plasmoid.configuration.lyricTextSize
     property int actualFontSize: {
         var baseSize = config_lyricTextSize;
@@ -350,13 +355,10 @@ PlasmoidItem {
     property int config_preferedWidgetWidth: Plasmoid.configuration.preferedWidgetWidth
     property bool config_hideItemWhenNoControlChecked: Plasmoid.configuration.hideItemWhenNoControlChecked
 
-    property int config_lxMusicPort: Plasmoid.configuration.lxMusicPort
-
     property bool config_showNextLyric: Plasmoid.configuration.showNextLyric
     property int config_syncOffsetMs: Plasmoid.configuration.syncOffsetMs
     property int config_transitionDurationMs: Plasmoid.configuration.transitionDurationMs
     property double config_nextLyricOpacity: Plasmoid.configuration.nextLyricOpacity
-    property string config_nextLyricSeparator: Plasmoid.configuration.nextLyricSeparator
 
     readonly property string serverHost: "127.0.0.1"
     readonly property int serverPort: 23560
@@ -372,6 +374,7 @@ PlasmoidItem {
     property string currentTitle: ""
     property string currentArtist: ""
     property string currentAlbum: ""
+    property string currentArtUrl: ""
     property string currentPlayerIdentity: ""
     property string currentPlayerBusName: ""
     property int positionMs: 0
@@ -392,17 +395,7 @@ PlasmoidItem {
     }
 
     property string requestedPlayer: {
-        if (selectedPlayer) {
-            return selectedPlayer
-        } else if (config_yesPlayMusicChecked) {
-            return "org.mpris.MediaPlayer2.yesplaymusic"
-        } else if (config_spotifyChecked) {
-            return "org.mpris.MediaPlayer2.spotify"
-        } else if (config_lxMusicChecked) {
-            return "org.mpris.MediaPlayer2.lx-music-desktop"
-        } else {
-            return ""
-        }
+        return selectedPlayer ? selectedPlayer : ""
     }
 
     property string lrc_not_exists: {
@@ -669,6 +662,7 @@ PlasmoidItem {
             currentTitle = data.track.title || ""
             currentArtist = data.track.artist || ""
             currentAlbum = data.track.album || ""
+            currentArtUrl = data.track.art_url || ""
         }
 
         if (data.lyrics) {

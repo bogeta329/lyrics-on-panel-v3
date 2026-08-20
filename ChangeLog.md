@@ -20,8 +20,10 @@
 3. **Adaptive font sizing** — Automatically reduces font size when the panel is too small to fit both lines, then reverts to the configured size when preview is disabled.
 4. **Jitter-free vertical centering** — The active lyric stays strictly centered with a smooth `200ms` `Behavior on y` animation. Position is clamped to never clip at the top.
 5. **Manual sync offset** — Configuration slider to adjust synchronization from `-5000ms` to `+5000ms`.
-6. **One-click installer** — Single `install.sh` script at the root of the repo that auto-detects your distro, installs all dependencies, registers the KDE widget, sets up the Python environment, and configures a systemd user service.
-7. **Uninstaller** — `uninstall.sh` cleanly removes everything: service, widget, and backend files.
+6. **Automatic metadata title sanitization** — Strips noisy tags like `(Official Video)`, `(feat. ...)`, `- Remastered 2021`, etc., prior to querying remote providers, increasing search hit rates.
+7. **Secondary lyrics provider fallback (Kugou Synced LRC)** — Added Kugou Music API as an automatic fallback when LRCLIB returns no synced lyrics.
+8. **One-click installer** — Single `install.sh` script at the root of the repo that auto-detects your distro, installs all dependencies, registers the KDE widget, sets up the Python environment, and configures a systemd user service.
+9. **Uninstaller** — `uninstall.sh` cleanly removes everything: service, widget, and backend files.
 
 ----
 

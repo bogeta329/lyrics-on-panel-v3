@@ -1,4 +1,6 @@
 import json
+import re
+import base64
 import threading
 import hashlib
 from pathlib import Path
@@ -32,7 +34,7 @@ class LyricsManager:
     def setup(self, playername=None, playerobj=None, title=None, artist=None, album=None,
               duration=0, identity=None, lyrics=None, current_lyric=None,
               playback_status=PlaybackStatus.STOPPED, position_ms=0, available_players=None,
-              next_lyric=None, current_lyric_duration_ms=0, time_remaining_ms=0):
+              next_lyric=None, current_lyric_duration_ms=0, time_remaining_ms=0, art_url=""):
         self.playername = playername
         self.playerobj = playerobj
         self.title = title
@@ -48,6 +50,7 @@ class LyricsManager:
         self.next_lyric = next_lyric
         self.current_lyric_duration_ms = current_lyric_duration_ms
         self.time_remaining_ms = time_remaining_ms
+        self.art_url = art_url
     
     
     def poll_status(self, requested_playername=None):
@@ -172,10 +175,28 @@ class LyricsManager:
                 available_players=playernames,
                 next_lyric=lyrics_info["next_lyric"],
                 current_lyric_duration_ms=lyrics_info["current_lyric_duration_ms"],
-                time_remaining_ms=lyrics_info["time_remaining_ms"]
+                time_remaining_ms=lyrics_info["time_remaining_ms"],
+                art_url=track_info.get('art_url', '')
             )
             return self.get_state()
 
+
+    def _clean_title(self, title):
+        if not title:
+            return ""
+        cleaned = title
+        cleaned = re.sub(r'[\(\[]feat\..*?[\)\]]', '', cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r'[\(\[](official|lyric|video|audio|remastered|live|deluxe|version|edit|explicit).*?[\)\]]', '', cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r'\s*-\s*(remastered|live|deluxe|bonus|radio edit|\d{4} remaster).*$', '', cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r'\s+', ' ', cleaned).strip()
+        return cleaned if cleaned else title
+
+    def _clean_artist(self, artist):
+        if isinstance(artist, list):
+            artist = artist[0] if artist else ""
+        if not artist:
+            return ""
+        return re.sub(r'\s*(feat\.|ft\.).*$', '', artist, flags=re.IGNORECASE).strip()
 
     def _fetch_lyrics(self, playername, track_info, fetch_id):
         # Check if this fetch is still current
@@ -201,7 +222,16 @@ class LyricsManager:
                     # Check again before expensive HTTP calls
                     if self._fetch_id != fetch_id:
                         return
-                    lyrics = self._fetch_lyrics_lrclib(title, artist, album, length, 10)
+                    # Try LRCLIB first
+                    lyrics = self._fetch_lyrics_lrclib(title, artist, album, length, 8)
+                    # If LRCLIB is missing or only has estimated plain lyrics, try Kugou for real synced LRC
+                    is_estimated = (lyrics and len(lyrics) > 0 and lyrics[0].get('is_estimated', False))
+                    if lyrics is None or is_estimated:
+                        if self._fetch_id != fetch_id:
+                            return
+                        k_lyrics = self._fetch_lyrics_kugou(title, artist, 8)
+                        if k_lyrics:
+                            lyrics = k_lyrics
             # Only write if this fetch is still current
             with self.lock:
                 if self._fetch_id == fetch_id:
@@ -271,46 +301,57 @@ class LyricsManager:
     def _fetch_lyrics_lrclib(self, title, artist, album, length, timeout=5):
         """Fetch lyrics from lrclib.net (compatible mode). Returns parsed lyrics or None."""
         duration_sec = length // 1000000 if length else None
+        c_title = self._clean_title(title)
+        c_artist = self._clean_artist(artist)
+
         params = urlencode({
-            'track_name': title,
-            'artist_name': artist,
+            'track_name': c_title,
+            'artist_name': c_artist,
             'album_name': album
         })
 
         def fetch_exact():
             if not duration_sec:
-                return None
+                return (None, None)
             url = f"https://lrclib.net/api/get?{params}&duration={duration_sec}"
             status, text = self._http_get(url, timeout)
             if status == 200 and text:
                 data = json.loads(text)
-                return data.get('syncedLyrics')
-            return None
+                return (data.get('syncedLyrics'), data.get('plainLyrics'))
+            return (None, None)
 
         def fetch_search():
-            q_str = f"{artist} {title}"
+            q_str = f"{c_artist} {c_title}"
             url = f"https://lrclib.net/api/search?q={quote(q_str)}"
             status, text = self._http_get(url, timeout)
             if status == 200 and text:
                 data = json.loads(text)
+                synced_m, plain_m = None, None
                 for result in data:
                     res_artist = result.get('artistName', '').lower()
-                    if artist.lower() in res_artist or res_artist in artist.lower():
-                        if result.get('syncedLyrics'):
-                            return result['syncedLyrics']
-            return None
+                    if c_artist.lower() in res_artist or res_artist in c_artist.lower() or not c_artist:
+                        if result.get('syncedLyrics') and not synced_m:
+                            synced_m = result['syncedLyrics']
+                        if result.get('plainLyrics') and not plain_m:
+                            plain_m = result['plainLyrics']
+                return (synced_m, plain_m)
+            return (None, None)
 
         def fetch_fuzzy():
-            url = f"https://lrclib.net/api/search?q={quote(title)}"
+            url = f"https://lrclib.net/api/search?q={quote(c_title)}"
             status, text = self._http_get(url, timeout)
             if status == 200 and text:
                 data = json.loads(text)
+                synced_m, plain_m = None, None
                 for result in data:
                     res_artist = result.get('artistName', '').lower()
-                    if artist.lower() in res_artist or res_artist in artist.lower():
-                        if result.get('syncedLyrics'):
-                            return result['syncedLyrics']
-            return None
+                    if c_artist.lower() in res_artist or res_artist in c_artist.lower() or not c_artist:
+                        if result.get('syncedLyrics') and not synced_m:
+                            synced_m = result['syncedLyrics']
+                        if result.get('plainLyrics') and not plain_m:
+                            plain_m = result['plainLyrics']
+                return (synced_m, plain_m)
+            return (None, None)
 
         # Run all fetches in parallel
         with ThreadPoolExecutor(max_workers=3) as executor:
@@ -319,17 +360,86 @@ class LyricsManager:
                 executor.submit(fetch_search): 1,
                 executor.submit(fetch_fuzzy): 2,
             }
-            results = [None, None, None]
+            results = [(None, None), (None, None), (None, None)]
             for future in as_completed(futures):
                 priority = futures[future]
                 try:
                     results[priority] = future.result()
                 except Exception:
                     pass
-        # Pick best result by priority
-        for result in results:
-            if result:
-                return self._parse_lrc(result)
+
+        # 1. Prefer synced lyrics
+        for synced, plain in results:
+            if synced:
+                return self._parse_lrc(synced)
+
+        # 2. Fallback to plain lyrics candidate
+        for synced, plain in results:
+            if plain:
+                parsed = self._parse_plain_lrc(plain, length)
+                if parsed:
+                    return parsed
+        return None
+
+    def _parse_plain_lrc(self, plain_text, length):
+        if not plain_text:
+            return None
+        raw_lines = [line.strip() for line in plain_text.splitlines() if line.strip()]
+        if not raw_lines:
+            return None
+        total = len(raw_lines)
+        lines = []
+        if length and length > 0:
+            intro_us = int(length * 0.05)  # 5% intro offset to account for instrumental intro
+            vocal_duration_us = int(length * 0.88)  # 88% vocal window
+            step_us = vocal_duration_us // max(1, total - 1)
+            for i, line in enumerate(raw_lines):
+                time_ms = intro_us + (i * step_us)
+                lines.append({"time_ms": time_ms, "lyric": line, "is_estimated": True})
+        else:
+            step_us = 4000000
+            for i, line in enumerate(raw_lines):
+                lines.append({"time_ms": i * step_us, "lyric": line, "is_estimated": True})
+        return lines
+
+    def _fetch_lyrics_kugou(self, title, artist, timeout=5):
+        """Fetch lyrics from Kugou Music API (fallback synced lyrics). Returns parsed lyrics or None."""
+        c_title = self._clean_title(title)
+        c_artist = self._clean_artist(artist)
+        q = f"{c_title} {c_artist}".strip()
+        if not q:
+            return None
+        url = f"http://mobilecdn.kugou.com/api/v3/search/song?keyword={quote(q)}&page=1&pagesize=5"
+        status, text = self._http_get(url, timeout)
+        if status != 200 or not text:
+            return None
+        try:
+            data = json.loads(text)
+            info = data.get('data', {}).get('info', [])
+            if not info:
+                return None
+            hash_val = info[0]['hash']
+            l_url = f"http://krcs.kugou.com/search?ver=1&man=yes&client=mobi&keyword={quote(q)}&hash={hash_val}"
+            l_status, l_text = self._http_get(l_url, timeout)
+            if l_status != 200 or not l_text:
+                return None
+            l_data = json.loads(l_text)
+            cands = l_data.get('candidates', [])
+            if not cands:
+                return None
+            cand_id = cands[0]['id']
+            accesskey = cands[0]['accesskey']
+            d_url = f"http://krcs.kugou.com/download?ver=1&client=mobi&id={cand_id}&accesskey={accesskey}&fmt=lrc"
+            d_status, d_text = self._http_get(d_url, timeout)
+            if d_status != 200 or not d_text:
+                return None
+            d_data = json.loads(d_text)
+            b64 = d_data.get('content', '')
+            if b64:
+                lrc = base64.b64decode(b64).decode('utf-8', errors='ignore')
+                return self._parse_lrc(lrc)
+        except Exception as e:
+            print(f"[DEBUG] Kugou lyrics fetch error: {e}")
         return None
 
 
@@ -344,7 +454,7 @@ class LyricsManager:
                     m, s = time_str.split(':')
                     time_ms = int((float(m) * 60 + float(s)) * 1000000)
                     lines.append({"time_ms": time_ms, "lyric": lyric})
-                except:
+                except Exception:
                     continue
         lines.sort(key=lambda x: x['time_ms'])
         return lines
@@ -388,7 +498,8 @@ class LyricsManager:
                 "title": self.title,
                 "artist": ", ".join(self.artist) if self.artist else "",
                 "album": self.album,
-                "duration": self.duration
+                "duration": self.duration,
+                "art_url": getattr(self, 'art_url', '') or ""
             },
             "position_ms": self.position_ms,
             "lyrics": {
@@ -408,7 +519,7 @@ class LyricsManager:
             "track": None,
             "position_ms": 0,
             "lyrics": None,
-            "avaiable_players": None
+            "available_players": None
         }
 
     def _get_cached_lyrics(self, cache_key):

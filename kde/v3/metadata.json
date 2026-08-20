@@ -2,16 +2,21 @@
     "KPlugin": {
         "Authors": [
             {
+                "Name": "bogeta329 (v3 Fork)",
+                "Task": "v3 Fork Maintainer"
+            },
+            {
                 "Email": "anicaazhu@gmail.com",
-                "Name": "Anicaa Zhu"
+                "Name": "KangweiZhu (Anicaa Zhu)",
+                "Task": "Original Author"
             }
         ],
         "Category": "Multimedia",
-        "Description": "A widget that can display the current playing music's synchronized lyrics line by line, on any where.",
+        "Description": "Modern Plasma 6 panel widget for real-time synchronized lyrics. Improved v3.0 fork by bogeta329 featuring Apple Music style transitions, multi-provider lyrics (LRCLIB + Kugou), metadata sanitization, and low CPU usage.",
         "Icon": "preferences-media-playback-amarok",
         "Id": "lyrics-on-panel-plasma6-v3",
         "License": "GPLv3",
-        "Name": "lyrics-on-panel-plasma6-v3",
+        "Name": "Lyrics-on-Panel",
         "Version": "3.0",
         "Website": "https://github.com/bogeta329/lyrics-on-panel-v3"
     },
