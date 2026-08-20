@@ -149,4 +149,9 @@ systemctl --user restart Universal-Mpris-LyricServer
 - **Original Author**: [KangweiZhu](https://github.com/KangweiZhu) ([lyrics-on-panel](https://github.com/KangweiZhu/lyrics-on-panel))
 - **v3 Fork Maintainer**: [bogeta329](https://github.com/bogeta329)
 - **License**: GNU General Public License v3.0 ([GPLv3](LICENSE))
-- **Development Note**: Built with [vibe coding](https://en.wikipedia.org/wiki/Vibe_coding) — AI-assisted development where feature design and iteration were guided by the maintainer, with all code reviewed, tested, and validated on Linux.
+
+---
+
+## 💡 Development Note
+
+> This project was built using **[vibe coding](https://en.wikipedia.org/wiki/Vibe_coding)** — an AI-assisted development approach where the overall direction, feature design, and iteration were driven by the developer, with AI tools helping implement and refine the code in real time. All features and fixes were reviewed, tested, and validated on Linux by a human.
