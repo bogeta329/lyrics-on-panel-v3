@@ -87,16 +87,16 @@ Once installation finishes:
 2. Search for **`lyrics-on-panel-plasma6-v3`** (or `Lyrics-on-Panel`).
 3. Drag and drop it onto your panel.
 
----
-
 ### 📋 Distro Support Matrix
+
+> 💡 In theory, the universal installer should work on **any Linux distribution** with KDE Plasma. However, it has only been directly tested on **Arch Linux (CachyOS)** and **Debian / Ubuntu (Kubuntu)**.
 
 | Distribution | Status | Package Manager |
 |---|---|---|
-| **Arch Linux / CachyOS / Manjaro** | ✅ Tested | `pacman` |
-| **Debian / Ubuntu / Pop!_OS / Kubuntu** | ✅ Tested | `apt` |
-| **Fedora / Nobara** | ✅ Tested | `dnf` |
-| **openSUSE Tumbleweed / Leap** | ✅ Tested | `zypper` |
+| **Arch Linux / CachyOS / Manjaro** | ✅ Tested (CachyOS) | `pacman` |
+| **Debian / Ubuntu / Pop!_OS / Kubuntu** | ✅ Tested (Kubuntu) | `apt` |
+| **Fedora / Nobara** | ⚠️ Supported (Untested) | `dnf` |
+| **openSUSE Tumbleweed / Leap** | ⚠️ Supported (Untested) | `zypper` |
 
 ---
 
