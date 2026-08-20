@@ -129,7 +129,7 @@ journalctl --user -u Universal-Mpris-LyricServer -f
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=bogeta329/lyrics-on-panel-v3&type=date&legend=top-left)](https://www.star-history.com/#bogeta329/lyrics-on-panel-v3&type=date&legend=top-left)
+[![GitHub stars](https://img.shields.io/github/stars/bogeta329/lyrics-on-panel-v3?style=for-the-badge&logo=github&color=yellow)](https://github.com/bogeta329/lyrics-on-panel-v3/stargazers)
 
 ----
 
