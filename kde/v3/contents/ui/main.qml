@@ -28,12 +28,17 @@ PlasmoidItem {
         var textW = lyricColumn ? lyricColumn.width : 0;
         var iconsW = iconsContainer ? iconsContainer.Layout.preferredWidth : 120;
         var needed = textW + iconsW + config_mediaControllSpacing + 16;
-        var maxW = parseInt(config_preferedWidgetWidth) || 550;
+        var configuredMax = parseInt(config_preferedWidgetWidth);
+        var maxW = (configuredMax && configuredMax > 0) ? Math.max(configuredMax, 850) : 850;
         return Math.min(maxW, Math.max(iconsW + 20, needed));
     }
 
     preferredRepresentation: fullRepresentation
     Layout.preferredWidth: calcNeededWidth
+    Layout.maximumWidth: {
+        var configuredMax = parseInt(config_preferedWidgetWidth);
+        return (configuredMax && configuredMax > 0) ? Math.max(configuredMax, 850) : 850;
+    }
     Layout.preferredHeight: height
 
     Plasmoid.backgroundHints: PlasmaCore.Types.NoBackground | PlasmaCore.Types.ConfigurableBackground
@@ -64,6 +69,8 @@ PlasmoidItem {
                 running: lyricColumn.width > lyricTextContainer.width && playbackStatus === "playing"
                 loops: Animation.Infinite
 
+                PauseAnimation { duration: 300 }
+
                 PropertyAnimation {
                     target: lyricColumn
                     property: "xPosition"
@@ -73,7 +80,7 @@ PlasmoidItem {
                     easing.type: Easing.Linear
                 }
 
-                PauseAnimation { duration: 1000 }
+                PauseAnimation { duration: 1500 }
 
                 PropertyAnimation {
                     target: lyricColumn
@@ -84,7 +91,7 @@ PlasmoidItem {
                     easing.type: Easing.Linear
                 }
 
-                PauseAnimation { duration: 1000 }
+                PauseAnimation { duration: 500 }
             }
 
             Timer {
@@ -104,7 +111,10 @@ PlasmoidItem {
                 id: lyricColumn
                 property real spacing: 0
                 height: (currentLyricText ? currentLyricText.contentHeight : 0) + ((nextLyricText && nextLyricText.visible) ? (nextLyricText.contentHeight * 0.8 + 2) : 0)
-                width: currentLyricText ? currentLyricText.contentWidth : 0
+                width: Math.max(
+                    currentLyricText ? (currentLyricText.contentWidth + 10) : 0,
+                    (nextLyricText && nextLyricText.visible) ? (nextLyricText.contentWidth * 0.8 + 10) : 0
+                )
                 
                 y: {
                     var centerY = (lyricTextContainer.height - height) / 2;
@@ -119,10 +129,13 @@ PlasmoidItem {
                 }
 
                 property real initialXPosition: {
+                    if (width > lyricTextContainer.width) {
+                        return 0
+                    }
                     if (config_lyricTextAlignment === 0) {
                         return 0
                     } else if (config_lyricTextAlignment === 1) {
-                        return Math.max(0, (lyricTextContainer.width - width) / 2)
+                        return (lyricTextContainer.width - width) / 2
                     } else {
                         return Math.max(0, lyricTextContainer.width - width - 6)
                     }
@@ -148,13 +161,17 @@ PlasmoidItem {
                     font.italic: config_lyricTextItalic
                     
                     anchors.top: parent.top
-                    anchors.horizontalCenter: config_lyricTextAlignment === 1 ? parent.horizontalCenter : undefined
-                    anchors.left: config_lyricTextAlignment === 0 ? parent.left : undefined
-                    anchors.right: config_lyricTextAlignment === 2 ? parent.right : undefined
+
+                    property bool overflowing: lyricColumn.width > lyricTextContainer.width
+                    property int effectiveAlignment: overflowing ? 0 : config_lyricTextAlignment
+
+                    anchors.horizontalCenter: effectiveAlignment === 1 ? parent.horizontalCenter : undefined
+                    anchors.left: effectiveAlignment === 0 ? parent.left : undefined
+                    anchors.right: effectiveAlignment === 2 ? parent.right : undefined
 
                     transformOrigin: {
-                        if (config_lyricTextAlignment === 0) return Item.Left
-                        else if (config_lyricTextAlignment === 1) return Item.Center
+                        if (effectiveAlignment === 0) return Item.Left
+                        else if (effectiveAlignment === 1) return Item.Center
                         else return Item.Right
                     }
 
@@ -176,10 +193,12 @@ PlasmoidItem {
                     
                     anchors.top: currentLyricText.bottom
                     anchors.topMargin: lyricColumn.spacing
-                    
-                    anchors.horizontalCenter: config_lyricTextAlignment === 1 ? parent.horizontalCenter : undefined
-                    anchors.left: config_lyricTextAlignment === 0 ? parent.left : undefined
-                    anchors.right: config_lyricTextAlignment === 2 ? parent.right : undefined
+
+                    property int effectiveAlignment: currentLyricText.effectiveAlignment
+
+                    anchors.horizontalCenter: effectiveAlignment === 1 ? parent.horizontalCenter : undefined
+                    anchors.left: effectiveAlignment === 0 ? parent.left : undefined
+                    anchors.right: effectiveAlignment === 2 ? parent.right : undefined
 
                     transformOrigin: currentLyricText.transformOrigin
                     scale: 0.8
@@ -382,15 +401,16 @@ PlasmoidItem {
     property var availablePlayers: []
     property string selectedPlayer: ""
     property int animationDuration: {
-        var defaultDuration = Math.max(2000, Math.abs((lyricTextContainer.width - lyricColumn.width) / 50 * 1000));
+        var overflow = Math.abs(lyricColumn.width - lyricTextContainer.width);
+        var defaultDuration = Math.max(2000, overflow / 60 * 1000);
         if (playbackStatus !== "playing" || timeRemainingMs <= 0) {
             return defaultDuration;
         }
         var adjustedRemaining = timeRemainingMs + config_syncOffsetMs;
-        if (adjustedRemaining < 2000) {
-            return 1500;
+        if (adjustedRemaining < 3000) {
+            return Math.max(1200, defaultDuration * 0.5);
         }
-        var targetDuration = (adjustedRemaining - 2000) / 2;
+        var targetDuration = (adjustedRemaining - 2500) / 2;
         return Math.max(1500, Math.min(defaultDuration, targetDuration));
     }
 

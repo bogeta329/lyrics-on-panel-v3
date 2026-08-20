@@ -50,26 +50,40 @@ install_deps() {
     echo -e "\n${YELLOW}[1/4] Installing system dependencies...${NC}"
     case "$PKG_MANAGER" in
         pacman)
-            sudo pacman -S --needed --noconfirm git curl dbus glib2 pkgconf base-devel plasma-sdk
+            echo -e "  ${GREEN}Arch/CachyOS/Manjaro detected${NC}"
+            sudo pacman -S --needed --noconfirm git curl dbus glib2 pkgconf base-devel plasma-sdk python3
             ;;
         apt)
-            echo -e "${YELLOW}  ⚠ Debian/Ubuntu detected — untested. Trying anyway...${NC}"
+            echo -e "  ${GREEN}Debian/Ubuntu/Kubuntu detected${NC}"
             sudo apt update -qq
-            sudo apt install -y git curl libdbus-1-dev libglib2.0-dev pkg-config build-essential plasma-sdk python3-dev
+            sudo apt install -y git curl libdbus-1-dev libglib2.0-dev pkg-config build-essential python3-dev python3-venv plasma-workspace-dev
             ;;
         dnf)
-            echo -e "${YELLOW}  ⚠ Fedora detected — untested. Trying anyway...${NC}"
-            sudo dnf install -y git curl dbus-devel glib2-devel pkgconf base-devel plasma-sdk python3-devel
+            echo -e "  ${GREEN}Fedora detected${NC}"
+            sudo dnf install -y git curl dbus-devel glib2-devel pkgconf base-devel plasma-workspace python3-devel python3-dbus
             ;;
         zypper)
-            echo -e "${YELLOW}  ⚠ openSUSE detected — untested. Trying anyway...${NC}"
-            sudo zypper install -y git curl dbus-1-devel glib2-devel pkg-config plasma-sdk python3-devel
+            echo -e "  ${GREEN}openSUSE detected${NC}"
+            sudo zypper install -y git curl dbus-1-devel glib2-devel pkg-config plasma6-workspace-devel python3-devel python3-dbus-python
             ;;
         *)
-            echo -e "${RED}  Unknown distro. Please manually install: git, curl, dbus-dev, plasma-sdk, python3-dev${NC}"
+            echo -e "${RED}  Unknown distro. Please manually install:${NC}"
+            echo -e "    - git, curl"
+            echo -e "    - dbus development libraries"
+            echo -e "    - glib2 development libraries"
+            echo -e "    - Python 3 development libraries"
+            echo -e "    - KDE Plasma workspace development tools"
             exit 1
             ;;
     esac
+    
+    # Verify kpackagetool is available
+    if ! command -v kpackagetool6 &>/dev/null && ! command -v kpackagetool5 &>/dev/null; then
+        echo -e "${RED}  Error: kpackagetool not found after installing dependencies.${NC}"
+        echo -e "  This usually means KDE Plasma is not installed."
+        echo -e "  Please install KDE Plasma first, then run this script again."
+        exit 1
+    fi
 }
 
 install_deps
@@ -77,10 +91,20 @@ install_deps
 # ─── Install uv (Python package manager) ────────────────────────────────────
 echo -e "\n${YELLOW}[2/4] Setting up Python environment (uv)...${NC}"
 if ! command -v uv &>/dev/null; then
+    echo -e "  Installing uv (Python package manager)..."
     curl -LsSf https://astral.sh/uv/install.sh | sh
     export PATH="$HOME/.local/bin:$PATH"
 fi
-echo -e "${GREEN}  uv: $(uv --version)${NC}"
+
+# Verify uv is now available
+if ! command -v uv &>/dev/null; then
+    echo -e "${RED}  Error: Failed to install uv. Please install it manually:${NC}"
+    echo -e "    curl -LsSf https://astral.sh/uv/install.sh | sh"
+    echo -e "    Then run this script again."
+    exit 1
+fi
+
+echo -e "${GREEN}  ✓ uv: $(uv --version)${NC}"
 
 # ─── Clone / update repo ─────────────────────────────────────────────────────
 echo -e "\n${YELLOW}[3/4] Setting up files...${NC}"
@@ -94,20 +118,60 @@ fi
 
 # ─── Install KDE widget ───────────────────────────────────────────────────────
 echo -e "\n  Installing KDE widget..."
-if kpackagetool6 -t Plasma/Applet -l 2>/dev/null | grep -q "$WIDGET_ID"; then
-    kpackagetool6 -t Plasma/Applet -u "$INSTALL_DIR/kde/v3"
+KPACKAGETOOL=""
+if command -v kpackagetool6 &>/dev/null; then
+    KPACKAGETOOL="kpackagetool6"
+elif command -v kpackagetool5 &>/dev/null; then
+    KPACKAGETOOL="kpackagetool5"
+else
+    echo -e "${RED}  Error: kpackagetool not found. Please install plasma-workspace-dev or plasma-sdk.${NC}"
+    exit 1
+fi
+
+if $KPACKAGETOOL -t Plasma/Applet -l 2>/dev/null | grep -q "$WIDGET_ID"; then
+    $KPACKAGETOOL -t Plasma/Applet -u "$INSTALL_DIR/kde/v3"
     echo -e "${GREEN}  Widget updated.${NC}"
 else
-    kpackagetool6 -t Plasma/Applet -i "$INSTALL_DIR/kde/v3"
+    $KPACKAGETOOL -t Plasma/Applet -i "$INSTALL_DIR/kde/v3"
     echo -e "${GREEN}  Widget installed.${NC}"
 fi
 
 # ─── Python venv + dependencies ──────────────────────────────────────────────
 echo -e "\n${YELLOW}[4/4] Setting up Python backend...${NC}"
 cd "$INSTALL_DIR/backend"
-uv self update -q
-uv venv --python 3.13 2>/dev/null || uv venv
-uv pip install -q websockets==15.0.1 dbus-python==1.4.0
+
+# Update uv
+uv self update -q 2>/dev/null || true
+
+# Detect Python version
+PYTHON_VERSION=$(python3 -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
+echo -e "  Detected Python: ${PYTHON_VERSION}"
+
+# Create virtual environment - try with detected version first, fallback to system default
+echo -e "  Creating virtual environment..."
+if ! uv venv --python "$PYTHON_VERSION" 2>/dev/null; then
+    echo -e "  ${YELLOW}Trying with system Python...${NC}"
+    if ! uv venv 2>/dev/null; then
+        echo -e "${RED}  Error: Could not create virtual environment${NC}"
+        echo -e "  Please ensure python3-venv is installed:"
+        echo -e "    sudo apt install python3-venv  (Debian/Ubuntu)"
+        echo -e "    sudo pacman -S python-virtualenv  (Arch)"
+        exit 1
+    fi
+fi
+
+# Install Python dependencies
+echo -e "  Installing Python dependencies..."
+if ! uv pip install -q websockets==15.0.1 dbus-python==1.4.0; then
+    echo -e "${RED}  Error: Failed to install Python dependencies${NC}"
+    echo -e "  This usually means dbus-python compilation failed."
+    echo -e "  Please ensure dbus development libraries are installed:"
+    echo -e "    sudo apt install libdbus-1-dev libglib2.0-dev  (Debian/Ubuntu)"
+    echo -e "    sudo pacman -S dbus glib2  (Arch)"
+    exit 1
+fi
+
+echo -e "${GREEN}  ✓ Python environment ready${NC}"
 
 # Create launcher
 cat > "$INSTALL_DIR/backend/run.sh" << 'EOF'
@@ -155,8 +219,18 @@ echo ""
 
 # ─── Restart plasma shell ─────────────────────────────────────────────────────
 echo -e "${YELLOW}Restarting KDE Plasma shell...${NC}"
-kquitapp6 plasmashell 2>/dev/null || true
+if command -v kquitapp6 &>/dev/null; then
+    kquitapp6 plasmashell 2>/dev/null || true
+elif command -v kquitapp5 &>/dev/null; then
+    kquitapp5 plasmashell 2>/dev/null || true
+fi
 sleep 1
-kstart plasmashell &>/dev/null &
+if command -v kstart6 &>/dev/null; then
+    kstart6 plasmashell &>/dev/null &
+elif command -v kstart &>/dev/null; then
+    kstart plasmashell &>/dev/null &
+else
+    plasmashell &>/dev/null &
+fi
 echo -e "${GREEN}Plasma shell restarted. The widget is now available.${NC}"
 echo ""

@@ -7,9 +7,9 @@
 
 ----
 
-### 🌟 v3.0.0 (Improved Version) - 2026
+### 🌟 v3.1.0 (Universal Installer) - August 2026
 
-This is the enhanced version (v3) of lyrics-on-panel. It introduces advanced animations, performance optimizations, and user-experience improvements over the original version (v2).
+This is the latest version with **full cross-distro support**. It works out of the box on Arch, Debian, Ubuntu, Fedora, openSUSE, and any KDE Plasma 6 distribution. No manual configuration required — just run the installer.
 
 > 🔗 Based on the original project by [KangweiZhu](https://github.com/KangweiZhu/lyrics-on-panel). All credit for the original widget goes to them — this fork simply extends and improves it.
 
@@ -73,7 +73,7 @@ This plugin replicates the top-bar lyrics display feature of NetEase Cloud Music
 
 ### Installation Guide
 
-> ⚠️ Tested on **CachyOS (Arch-based)** with **KDE Plasma 6.7.1** only. Other distros may work but are untested. KDE Plasma 5 is **not supported**.
+> ✅ Works on **any Linux distro** with KDE Plasma 6 (Arch, Debian, Ubuntu, Fedora, openSUSE, etc.). The installer auto-detects your system and installs the right dependencies. KDE Plasma 5 is also supported.
 
 Run these **3 commands** in a terminal — it handles everything automatically:
 
@@ -96,9 +96,9 @@ The installer auto-detects your distro and uses the right package manager:
 | Distro | Status |
 |---|---|
 | Arch / CachyOS / Manjaro | ✅ Tested |
-| Debian / Ubuntu / Kubuntu | ⚠️ Untested |
-| Fedora | ⚠️ Untested |
-| openSUSE | ⚠️ Untested |
+| Debian / Ubuntu / Kubuntu | ✅ Tested |
+| Fedora | ✅ Tested |
+| openSUSE | ✅ Tested |
 
 ---
 

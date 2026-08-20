@@ -68,7 +68,6 @@ class LyricsServer:
 
     @route("/poll")
     async def poll(self, websocket):
-        global cnt
         try:
             async for message in websocket:
                 try:

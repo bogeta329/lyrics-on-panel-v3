@@ -37,7 +37,7 @@
             <default>false</default>
         </entry>
         <entry name="preferedWidgetWidth" type="String">
-            <default>550</default>
+            <default>850</default>
         </entry>
         <entry name="hideItemWhenNoControlChecked" type="Bool">
             <default>true</default>

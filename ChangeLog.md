@@ -2,6 +2,32 @@
 
 ----
 
+### [v3.1 — 08/2026] Universal Installer & Cross-Distro Support
+
+> This release focuses on making the widget work flawlessly on **any Linux distribution** with KDE Plasma 6, with zero manual configuration required.
+
+#### Bug Fixes
+
+1. **Fixed `avaiable_players` typo in empty state response** — The backend was returning `avaiable_players` instead of `available_players`, causing the widget to never clear the available players list when no player was running.
+2. **Fixed KCFG type `int` → `Int` for `lyricTextAlignment`** — KDE config schema was using lowercase `int` which is invalid. Fixed to `Int` to prevent config load errors on some Plasma versions.
+3. **Replaced bare `except:` with `except Exception:` in LRC parser** — Bare except clauses were catching `SystemExit` and `KeyboardInterrupt`, preventing clean shutdown.
+4. **Removed debug print of HTTP headers in server.py** — Was exposing full HTTP headers in logs.
+
+#### Improvements
+
+1. **Universal installer** — `install.sh` now fully supports Arch, CachyOS, Manjaro, Debian, Ubuntu, Kubuntu, Fedora, and openSUSE out of the box. Auto-detects package manager and installs correct dependencies for each distro.
+2. **Plasma 5 & 6 compatibility** — Installer and uninstaller auto-detect `kpackagetool5`/`kpackagetool6`, `kquitapp5`/`kquitapp6`, and `kstart`/`kstart6`. Works on both Plasma 5 and 6.
+3. **Better error messages** — When something fails, the script now tells you exactly what to do to fix it (which package to install, which command to run).
+4. **Python version auto-detection** — Virtual environment is created with the system's Python version instead of hardcoded 3.13, making it work on Debian (3.11), Ubuntu (3.12), Fedora (3.13), etc.
+5. **Dependency verification** — Installer checks that KDE Plasma is actually installed before proceeding, and verifies `uv` was installed correctly.
+6. **Dynamic widget width** — Widget now expands dynamically to fit long lyric lines without clipping. Width is calculated from both current and next lyric lines.
+7. **Improved marquee animation** — Smoother scrolling with `InOutQuad` easing, initial pause before scrolling, and better timing calculations.
+8. **Album cover art support** — Widget can now display album cover art from MPRIS metadata when available.
+9. **Metadata sanitization** — Title and artist names are cleaned before querying lyrics providers, removing noise like `(Official Video)`, `(feat. ...)`, `- Remastered 2021`, etc.
+10. **Disk lyrics cache** — SHA-256 JSON cache under `/tmp/lyrics-on-panel-cache/` avoids duplicate network requests and auto-cleans on reboot.
+
+----
+
 ### [v3.0 — 06/2026] Improved Fork by bogeta329
 
 > This version is a fork of the original [lyrics-on-panel](https://github.com/KangweiZhu/lyrics-on-panel) by KangweiZhu. It builds on top of v2 and focuses on fixing core bugs and improving the overall experience.

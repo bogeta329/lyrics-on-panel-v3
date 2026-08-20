@@ -39,11 +39,22 @@ fi
 
 # ─── Remove KDE widget ────────────────────────────────────────────────────────
 echo -e "\n${YELLOW}[2/3] Removing KDE widget...${NC}"
-if kpackagetool6 -t Plasma/Applet -l 2>/dev/null | grep -q "${WIDGET_ID}"; then
-    kpackagetool6 -t Plasma/Applet -r "${WIDGET_ID}"
-    echo -e "  Widget removed."
+KPACKAGETOOL=""
+if command -v kpackagetool6 &>/dev/null; then
+    KPACKAGETOOL="kpackagetool6"
+elif command -v kpackagetool5 &>/dev/null; then
+    KPACKAGETOOL="kpackagetool5"
 else
-    echo -e "  Widget not found, skipping."
+    echo -e "${YELLOW}  kpackagetool not found, skipping widget removal.${NC}"
+fi
+
+if [ -n "$KPACKAGETOOL" ]; then
+    if $KPACKAGETOOL -t Plasma/Applet -l 2>/dev/null | grep -q "${WIDGET_ID}"; then
+        $KPACKAGETOOL -t Plasma/Applet -r "${WIDGET_ID}"
+        echo -e "  Widget removed."
+    else
+        echo -e "  Widget not found, skipping."
+    fi
 fi
 
 # ─── Remove backend files ─────────────────────────────────────────────────────
@@ -64,8 +75,18 @@ echo ""
 
 # ─── Restart plasma shell ─────────────────────────────────────────────────────
 echo -e "${YELLOW}Restarting KDE Plasma shell...${NC}"
-kquitapp6 plasmashell 2>/dev/null || true
+if command -v kquitapp6 &>/dev/null; then
+    kquitapp6 plasmashell 2>/dev/null || true
+elif command -v kquitapp5 &>/dev/null; then
+    kquitapp5 plasmashell 2>/dev/null || true
+fi
 sleep 1
-kstart plasmashell &>/dev/null &
+if command -v kstart6 &>/dev/null; then
+    kstart6 plasmashell &>/dev/null &
+elif command -v kstart &>/dev/null; then
+    kstart plasmashell &>/dev/null &
+else
+    plasmashell &>/dev/null &
+fi
 echo -e "${GREEN}Plasma shell restarted.${NC}"
 echo ""
